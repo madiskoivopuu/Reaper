@@ -13,5 +13,8 @@ type config struct {
 var (
 	Config            config
 	CachedTokens      = make(map[string]string, 0)
+	CachedPrices      = make(map[int64]int64, 0)
+	CachedProductIDs  = make(map[int64]int64, 0)
 	PriceCheckCookies []string
+	Token             map[string]string
 )

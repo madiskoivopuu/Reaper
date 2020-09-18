@@ -47,7 +47,8 @@ func (session *RBLXSession) GetCatalogDetails(assetIDs []int64) (*DetailsRespons
 
 	req, _ := http.NewRequest("POST", "https://catalog.roblox.com/v1/catalog/items/details", bytes.NewReader(postJSON))
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-CSRF-TOKEN", session.XCSRFToken)
+	req.Header.Add("X-CSRF-TOKEN", *session.XCSRFToken)
+	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	resp, respError := session.Client.Do(req)
 	if respError != nil {
 		return nil, NewCustomError(respError, -1)
@@ -76,6 +77,7 @@ func (session *RBLXSession) GetCatalogDetails(assetIDs []int64) (*DetailsRespons
 // GetRecommendations fetches X number of recommendations for a certain asset id (with some sorf of context asset id)
 func (session *RBLXSession) GetRecommendations(assetID int64, contextAssetID int64, numItems int64) (*RecommendationsResponse, *Error) {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://catalog.roblox.com/v1/recommendations/asset/%d?contextAssetId=%d&numItems=%d", assetID, contextAssetID, numItems), nil)
+	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	resp, respError := session.Client.Do(req)
 	if respError != nil {
 		return nil, NewCustomError(respError, -1)

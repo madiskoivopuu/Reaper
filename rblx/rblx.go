@@ -7,6 +7,6 @@ type RBLXSession struct {
 	Cookie     string
 	Username   string
 	UserID     int64
-	XCSRFToken string
+	XCSRFToken *string
 	Client     *http.Client
 }

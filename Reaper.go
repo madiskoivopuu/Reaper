@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"os"
 	"strconv"
-	"strings"
+	"time"
 
 	"github.com/SparklyCatTF2/Reaper/globals"
+	"github.com/SparklyCatTF2/Reaper/rblx"
 	"github.com/SparklyCatTF2/Reaper/threading"
 )
 
@@ -19,6 +23,7 @@ var (
 
 func main() {
 	//blockedUserAssetIds := make(map[int64]int64, 0)
+	globals.Token = make(map[string]string, 0)
 
 	// Load Config.cfg
 	configFile, configFileError := ioutil.ReadFile("./settings/config.json")
@@ -28,17 +33,16 @@ func main() {
 	}
 	jsonParseError := json.Unmarshal(configFile, &globals.Config)
 	if jsonParseError != nil {
-		fmt.Printf("[Reaper] Failed to parse config.json - %s", configFileError.Error())
+		fmt.Printf("[Reaper] Failed to parse config.json - %s", jsonParseError.Error())
 		return
 	}
 
 	// Load all price check cookies
-	cookiesFile, cookiesFileError := ioutil.ReadFile("./settings/cookies.txt")
-	if cookiesFileError != nil {
-		fmt.Printf("[Reaper] Failed to load cookies.txt - %s", cookiesFileError.Error())
-		return
+	opencookiesfile, _ := os.Open("./settings/cookies.txt")
+	scanner := bufio.NewScanner(opencookiesfile)
+	for scanner.Scan() {
+		globals.PriceCheckCookies = append(globals.PriceCheckCookies, scanner.Text())
 	}
-	globals.PriceCheckCookies = strings.Split(string(cookiesFile), "\n")
 
 	// Load asset IDs
 	assetIdsFile, assetsFileError := ioutil.ReadFile("./settings/asset_ids.txt")
@@ -56,6 +60,9 @@ func main() {
 		assetIds = append(assetIds, id)
 	}
 
+	// Start fetching token for snipe cookie
+	go threading.GrabToken(&rblx.RBLXSession{Cookie: globals.Config.Cookie, Client: &http.Client{}}, true)
+
 	// Passing asset IDs to the snipe threads
 	currentAssetNum := int64(1)
 	tempAssetIds := []int64{}
@@ -70,15 +77,16 @@ func main() {
 
 			for m := int64(0); m < globals.Config.ThreadMultiplier; m++ {
 				go threading.SnipeThread(tempAssetIds /*, snipeChannel */)
+				time.Sleep(1 * time.Millisecond)
 			}
 
 			tempAssetIds = nil
 		}
 	}
 
-	/*for {
-		snipe := <-snipeChannel
+	for {
+		//snipe := <-snipeChannel
 		// create a separate thread for purchasing
 		// add userassetid to blocked list
-	}*/
+	}
 }
