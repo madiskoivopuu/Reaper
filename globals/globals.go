@@ -1,5 +1,7 @@
 package globals
 
+import "time"
+
 type config struct {
 	Cookie           string  `json:"cookie"`
 	IDsPerThread     int64   `json:"idsPerThread"`
@@ -13,8 +15,12 @@ type config struct {
 var (
 	Config            config
 	CachedTokens      = make(map[string]string, 0)
-	CachedPrices      = make(map[int64]int64, 0)
 	CachedProductIDs  = make(map[int64]int64, 0)
+	BlockedAssetIds = make(map[int64]int64, 0)
 	PriceCheckCookies []string
-	Token             map[string]string
 )
+
+// GetTime gets the current time from epoch in milliseconds
+func GetTimeInMs() int64 {
+	return int64(time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+}

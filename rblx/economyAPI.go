@@ -12,15 +12,16 @@ import (
 
 type ResellersResponse struct {
 	Data []struct {
-		UserAssetID int `json:"userAssetId"`
+		UserAssetID int64 `json:"userAssetId"`
 		Seller      struct {
-			ID int `json:"id"`
+			ID int64 `json:"id"`
 		} `json:"seller"`
-		Price int `json:"price"`
+		Price int64 `json:"price"`
 	} `json:"data"`
 }
 
 type PurchasePost struct {
+	AssetID          int64 `json:"-"`
 	ExpectedCurrency int64 `json:"expectedCurrency"`
 	ExpectedPrice    int64 `json:"expectedPrice"`
 	ExpectedSellerID int64 `json:"expectedSellerId"`
@@ -31,6 +32,7 @@ type PurchaseResponse struct {
 
 // GetResellers fetches the 10 cheapest resellers for an item
 func (session *RBLXSession) GetResellers(assetID int64) (*ResellersResponse, *Error) {
+
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://economy.roblox.com/v1/assets/%d/resellers?limit=10", assetID), nil)
 	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	resp, respError := session.Client.Do(req)

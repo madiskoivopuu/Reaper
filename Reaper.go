@@ -22,9 +22,6 @@ var (
 )
 
 func main() {
-	//blockedUserAssetIds := make(map[int64]int64, 0)
-	globals.Token = make(map[string]string, 0)
-
 	// Load Config.cfg
 	configFile, configFileError := ioutil.ReadFile("./settings/config.json")
 	if configFileError != nil {
@@ -61,22 +58,23 @@ func main() {
 	}
 
 	// Start fetching token for snipe cookie
-	go threading.GrabToken(&rblx.RBLXSession{Cookie: globals.Config.Cookie, Client: &http.Client{}}, true)
+	snipeAccountSession := &rblx.RBLXSession{Cookie: globals.Config.Cookie, Client: &http.Client{}}
+	go threading.GrabToken(snipeAccountSession, true)
 
 	// Passing asset IDs to the snipe threads
 	currentAssetNum := int64(1)
 	tempAssetIds := []int64{}
-	// snipeChannel := make(chan PurchaseStruct)
-	for _, assetId := range assetIds {
+	snipeChannel := make(chan *rblx.PurchasePost)
+	for _, assetID := range assetIds {
 		if currentAssetNum < globals.Config.IDsPerThread {
-			tempAssetIds = append(tempAssetIds, assetId)
+			tempAssetIds = append(tempAssetIds, assetID)
 			currentAssetNum++
 		} else {
 			// add the remaining asset ids to the list
-			tempAssetIds = append(tempAssetIds, assetId)
+			tempAssetIds = append(tempAssetIds, assetID)
 
 			for m := int64(0); m < globals.Config.ThreadMultiplier; m++ {
-				go threading.SnipeThread(tempAssetIds /*, snipeChannel */)
+				go threading.SnipeThread(tempAssetIds, snipeChannel)
 				time.Sleep(1 * time.Millisecond)
 			}
 
@@ -85,8 +83,11 @@ func main() {
 	}
 
 	for {
-		//snipe := <-snipeChannel
-		// create a separate thread for purchasing
-		// add userassetid to blocked list
+		purchaseDetails := <-snipeChannel
+		// Check if sniping an asset is on cooldown
+		if globals.BlockedAssetIds[purchaseDetails.AssetID] > globals.GetTimeInMs() { continue }
+		globals.BlockedAssetIds[purchaseDetails.AssetID] = globals.GetTimeInMs() + 1*1000 // add 1 second cooldown to assetid
+
+		go threading.BuyItem(purchaseDetails, snipeAccountSession)
 	}
 }

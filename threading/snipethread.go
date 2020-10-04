@@ -10,50 +10,53 @@ import (
 	"github.com/SparklyCatTF2/Reaper/rblx"
 )
 
-func SnipeThread(assetIDs []int64) {
+func SnipeThread(assetIDs []int64, snipeChannel chan *rblx.PurchasePost) {
+	emptystr := ""
 	httpclient := &http.Client{}
+	cachedPrices := make(map[int64]int64, 0)
 	rand.Seed(time.Now().UnixNano())
-	rblxsession := &rblx.RBLXSession{}
-	for {
-		// Cache the token for the current and next price check cookie
-		currentPriceCheckCookie := globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))]
-		nextPriceCheckCookie := globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))]
-		rblxsession = &rblx.RBLXSession{Cookie: currentPriceCheckCookie, Client: httpclient}
-		go GrabToken(rblxsession, false)
-		go GrabToken(&rblx.RBLXSession{Cookie: nextPriceCheckCookie, Client: httpclient}, false)
 
+	// Cache the token for the current and next price check cookie
+	currentRobloxSession := &rblx.RBLXSession{Cookie: globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))], Client: httpclient, XCSRFToken: &emptystr }
+	nextRobloxSession := &rblx.RBLXSession{Cookie: globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))], Client: httpclient, XCSRFToken: &emptystr }
+	rblxsession := currentRobloxSession
+	GrabToken(rblxsession, false)
+	go GrabToken(nextRobloxSession, false)
+
+	for {
 		detailsResponse, err := rblxsession.GetCatalogDetails(assetIDs)
 		if err != nil {
 			// Rate limit, change price check cookie
 			switch err.Type {
 			case rblx.TooManyRequests:
-				currentPriceCheckCookie := nextPriceCheckCookie
-				rblxsession.Cookie = currentPriceCheckCookie
-				nextPriceCheckCookie := globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))]
-				go GrabToken(&rblx.RBLXSession{Cookie: nextPriceCheckCookie, Client: httpclient}, false)
+				currentRobloxSession = nextRobloxSession
+				nextRobloxSession = &rblx.RBLXSession{Cookie: globals.PriceCheckCookies[rand.Intn(len(globals.PriceCheckCookies))], Client: httpclient, XCSRFToken: &emptystr }
+				go GrabToken(nextRobloxSession, false)
 			case rblx.AuthorizationDenied:
 				fmt.Printf("[Reaper] Invalid price check cookie %s", rblxsession.Cookie)
+			case rblx.TokenValidation:
+				GrabToken(rblxsession, false)
 			}
+			continue
 		}
 
+		// Loop over the items & send the purchase details to main thread if snipe is profitable
 		for _, item := range detailsResponse.Data {
-			if globals.CachedPrices[item.ID] <= item.LowestPrice {
+			if cachedPrices[item.ID] <= item.LowestPrice {
 				getpercent := float64((30 * item.LowestPrice) / 100)
-				oldPriceAfterTax := float64(globals.CachedPrices[item.ID])
+				oldPriceAfterTax := float64(cachedPrices[item.ID])
 				oldPriceAfterTax -= getpercent
 				profitMargin := oldPriceAfterTax - float64(item.LowestPrice)
 				profitPercent := profitMargin / float64(item.LowestPrice)
 
 				if profitPercent >= globals.Config.ProfitPercent {
-					//purchaseStruct := &rblx.PurchasePost{ExpectedCurrency: 1, ExpectedPrice: item.LowestPrice}
-					// send the details through channel
+					purchaseStruct := &rblx.PurchasePost{AssetID: item.ID, ExpectedCurrency: 1, ExpectedPrice: item.LowestPrice}
+					snipeChannel <- purchaseStruct
 				} else {
-					globals.CachedPrices[item.ID] = item.LowestPrice
+					cachedPrices[item.ID] = item.LowestPrice
 				}
 			}
 		}
 
 	}
-
-	return
 }
