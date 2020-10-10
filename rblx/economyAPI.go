@@ -28,6 +28,12 @@ type PurchasePost struct {
 	UserAssetID      int64 `json:"userAssetId"`
 }
 type PurchaseResponse struct {
+	Purchased          bool   `json:"purchased"`
+	Reason             string `json:"reason"`
+	Price              int    `json:"price"`
+	AssetID            int    `json:"assetId"`
+	AssetName          string `json:"assetName"`
+	SellerName         string `json:"sellerName"`
 }
 
 // GetResellers fetches the 10 cheapest resellers for an item
@@ -69,7 +75,6 @@ func (session *RBLXSession) PurchaseItem(assetId int64, purchaseStruct PurchaseP
 	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	req.Header.Add("X-CSRF-TOKEN", *session.XCSRFToken)
 	req.Header.Add("Content-Type", "application/json")
-
 	resp, respError := session.Client.Do(req)
 	if respError != nil {
 		return nil, NewCustomError(respError, -1)
@@ -93,3 +98,6 @@ func (session *RBLXSession) PurchaseItem(assetId int64, purchaseStruct PurchaseP
 
 	return &purchaseResponse, nil
 }
+
+//{"expectedCurrency":1,"expectedPrice":500,"expectedSellerId":886410483,"userAssetId":22136841818}
+//{"expectedCurrency":1,"expectedPrice":500,"expectedSellerId":886410483,"userAssetId":22136841818}

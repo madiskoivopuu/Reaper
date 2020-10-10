@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+var counter = 0
+
 // Details endpoint post data & response structs
 type Item struct {
 	ID       int64  `json:"id"`
@@ -67,9 +69,12 @@ func (session *RBLXSession) GetCatalogDetails(assetIDs []int64) (*DetailsRespons
 
 	var details DetailsResponse
 	jsonParseError := json.Unmarshal(respText, &details)
+	//fmt.Println(string(respText))
+
 	if jsonParseError != nil {
 		return nil, NewCustomError(jsonParseError, -1)
 	}
+
 
 	return &details, nil
 }
