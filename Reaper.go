@@ -63,8 +63,8 @@ func main() {
 			assetIds = append(assetIds, id)
 		}
 	}
-	//cache ProductIDS of loaded assetIds
-	//assetidmaplenght := len(assetIds)
+	
+	// Cache ProductIDS of loaded assetIds
 	for line, bbc := range assetIds {
 
 		niggaballs := strconv.FormatInt(bbc, 10)
@@ -84,9 +84,10 @@ func main() {
 	}
 
 
-	// Start fetching token for snipe cookie
+	// Start fetching token for snipe cookie & keeping connection to economy.roblox.com open
 	snipeAccountSession := &rblx.RBLXSession{Cookie: globals.Config.Cookie, Client: &http.Client{}}
 	go threading.GrabToken(snipeAccountSession, true)
+	go threading.ConnectionThread(snipeAccountSession)
 
 	// Passing asset IDs to the snipe threads
 	currentAssetNum := int64(1)
@@ -115,7 +116,7 @@ func main() {
 		if globals.BlockedAssetIds[purchaseDetails.AssetID] > globals.GetTimeInMs() {
 			continue
 		}
-		globals.BlockedAssetIds[purchaseDetails.AssetID] = globals.GetTimeInMs() + 1*5 // add 1 second cooldown to assetid
+		globals.BlockedAssetIds[purchaseDetails.AssetID] = globals.GetTimeInMs() + 1*750 // add 1 second cooldown to assetid
 
 		go threading.BuyItem(purchaseDetails, snipeAccountSession)
 	}
