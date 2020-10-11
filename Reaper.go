@@ -63,7 +63,7 @@ func main() {
 			assetIds = append(assetIds, id)
 		}
 	}
-	
+
 	// Cache ProductIDS of loaded assetIds
 	for line, bbc := range assetIds {
 

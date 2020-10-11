@@ -10,6 +10,9 @@ type config struct {
 	WebhookMention   string  `json:"webhookMention"`
 	ProfitPercent    float64 `json:"profitPercent"`
 	AutoSell         bool    `json:"autoSell"`
+	ProfileAvatar 	 string  `json:"ProfileAvatar"`
+	Alias 			 string  `json:"YourAlias"`
+	TrySnipe 		 bool  	 `json:"TrySnipePrint"`
 }
 
 var (
