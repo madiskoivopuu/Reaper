@@ -50,17 +50,17 @@ func BuyItem(purchaseDetails *rblx.PurchasePost, snipeAccountSession *rblx.RBLXS
 		return
 	}
 
-	if resellerDetails.Data[0].Price != purchaseDetails.ExpectedPrice {
-		fmt.Printf("[Reaper] Price changed for asset %d while trying to snipe it (Old price: %d | New price: %d). \n", purchaseDetails.AssetID, purchaseDetails.ExpectedPrice, resellerDetails.Data[0].Price)
-		return
-	}
+	//if resellerDetails.Data[0].Price != purchaseDetails.ExpectedPrice {
+	//	fmt.Printf("[Reaper] Price changed for asset %d while trying to snipe it (Old price: %d | New price: %d). \n", purchaseDetails.AssetID, purchaseDetails.ExpectedPrice, resellerDetails.Data[0].Price)
+	//	return
+	//}
 
 	purchaseDetails.UserAssetID = resellerDetails.Data[0].UserAssetID
 	purchaseDetails.ExpectedSellerID = resellerDetails.Data[0].Seller.ID
 
 	// Purchase the item
 	purchaseResponse, purchaseError := snipeAccountSession.PurchaseItem(purchaseDetails.AssetID, *purchaseDetails)
-	if purchaseError == nil {
+	if purchaseError != nil {
 		switch purchaseError.Type {
 		case rblx.TooManyRequests:
 			fmt.Printf("[Reaper] Got too many requests error while purchasing asset %d, cookie might have expired.", purchaseDetails.AssetID)

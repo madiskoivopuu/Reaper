@@ -66,30 +66,30 @@ func main() {
 
 	// Load positive & negative quotes
 	filePositiveQuotes, _ := os.Open("pquotes.txt")
-	scanner := bufio.NewScanner(filePositiveQuotes)
-	for scanner.Scan() {
-		globals.PositiveQuotes = append(globals.PositiveQuotes, scanner.Text())
+	scanner2 := bufio.NewScanner(filePositiveQuotes)
+	for scanner2.Scan() {
+		globals.PositiveQuotes = append(globals.PositiveQuotes, scanner2.Text())
 	}
 
 	fileNegativeQuotes, _ := os.Open("nquotes.txt")
-	scanner := bufio.NewScanner(fileNegativeQuotes)
-	for scanner.Scan() {
-		globals.NegativeQuotes = append(globals.NegativeQuotes, scanner.Text())
+	scanner3 := bufio.NewScanner(fileNegativeQuotes)
+	for scanner3.Scan() {
+		globals.NegativeQuotes = append(globals.NegativeQuotes, scanner3.Text())
 	}
 
 	// Cache ProductIDS of loaded assetIds
 	for line, assetId := range assetIds {
-		productIdReq, err := http.NewRequest("GET", fmt.Sprintf("https://api.roblox.com/marketplace/productinfo?assetId=%s", niggaballs ), nil)
+		productIdReq, err := http.NewRequest("GET", fmt.Sprintf("https://api.roblox.com/marketplace/productinfo?assetId=%d", assetId), nil)
 		if err != nil {
 			fmt.Printf("[Reaper] Failed to create request to fetch ProductID for AssetID %s", line)
 		}
 		productIdReq.Header.Add("Cookie", fmt.Sprintf(".ROBLOSECURITY=%s", globals.Config.Cookie))
-		productIdResp, productIdRespErr := client.Do(getproductid)
+		productIdResp, productIdRespErr := client.Do(productIdReq)
 		if productIdRespErr != nil {
 			fmt.Printf("[Reaper] Failed to grab ProductID of AssetID of %s ", line)
 		}
 		var product *GetProductId
-		json.NewDecoder(getproductidres.Body).Decode(&product)
+		json.NewDecoder(productIdResp.Body).Decode(&product)
 		globals.CachedProductIDs[assetId] = product.ProductID
 		globals.CachedAssetNames[assetId] = product.Name
 	}

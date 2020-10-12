@@ -1,14 +1,12 @@
 package rblx
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
-	"strings"
-
 	"github.com/SparklyCatTF2/Reaper/globals"
+	"net/http"
 )
 
 type SellItem struct {
@@ -25,13 +23,14 @@ type SellItemResponse struct {
 
 // GetResellers fetches the 10 cheapest resellers for an item
 func (session *RBLXSession) SellItem(assetID int64, userAssetID int64, price int64) (*SellItemResponse, *Error) {
-	query_string := url.Values{}
-	query_string.Add("assetId", string(assetID))
-	query_string.Add("userAssetId", string(userAssetID))
-	query_string.Add("price", string(price))
-	query_string.Add("sell", "true")
+	var sellitemjson SellItem
+	sellitemjson = SellItem{AssetID: int(assetID), UserAssetID: int(userAssetID), Price: int(price), Sell: "true"}
+	sellitem, err := json.Marshal(sellitemjson)
+	if err != nil {
+		fmt.Println("Something went wrong building JSON to sell item")
+	}
 
-	sellItemReq, _ := http.NewRequest("POST", "https://www.roblox.com/asset/toggle-sale", strings.NewReader(query_string.Encode()))
+	sellItemReq, _ := http.NewRequest("POST", "https://www.roblox.com/asset/toggle-sale", bytes.NewBuffer(sellitem))
 	sellItemReq.Header.Add("Cookie", fmt.Sprintf(".ROBLOSECURITY=%s", globals.Config.Cookie))
 	sellItemReq.Header.Add("X-CSRF-TOKEN", *session.XCSRFToken)
 	sellItemReq.Header.Add("Content-Type", "application/json")
