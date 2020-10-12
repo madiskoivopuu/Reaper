@@ -38,7 +38,6 @@ type PurchaseResponse struct {
 
 // GetResellers fetches the 10 cheapest resellers for an item
 func (session *RBLXSession) GetResellers(assetID int64) (*ResellersResponse, *Error) {
-
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://economy.roblox.com/v1/assets/%d/resellers?limit=10", assetID), nil)
 	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	resp, respError := session.Client.Do(req)
@@ -98,6 +97,3 @@ func (session *RBLXSession) PurchaseItem(assetId int64, purchaseStruct PurchaseP
 
 	return &purchaseResponse, nil
 }
-
-//{"expectedCurrency":1,"expectedPrice":500,"expectedSellerId":886410483,"userAssetId":22136841818}
-//{"expectedCurrency":1,"expectedPrice":500,"expectedSellerId":886410483,"userAssetId":22136841818}

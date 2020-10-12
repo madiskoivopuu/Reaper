@@ -43,7 +43,7 @@ func SnipeThread(assetIDs []int64, snipeChannel chan *rblx.PurchasePost) {
 		// Loop over the items & send the purchase details to main thread if snipe is profitable
 		for _, item := range detailsResponse.Data {
 			if globals.Config.TrySnipe == true {
-				counter += 1
+				counter++
 				fmt.Printf("Counter: %d | LowestPrice: %d | Cached Price: %d \n", counter, item.LowestPrice, cachedPrices[item.ID])
 			}
 			if item.LowestPrice == 0 {

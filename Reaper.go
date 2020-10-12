@@ -17,13 +17,13 @@ import (
 )
 
 var (
-	priceCheckCookies []string
 	assetIds          []int64
 	client = &http.Client{}
 )
 
 type GetProductId struct {
 	ProductID   int64    `json:"ProductId"`
+	Name        string   `json:"Name"`
 }
 
 func main() {
@@ -64,23 +64,34 @@ func main() {
 		}
 	}
 
-	// Cache ProductIDS of loaded assetIds
-	for line, bbc := range assetIds {
+	// Load positive & negative quotes
+	filePositiveQuotes, _ := os.Open("pquotes.txt")
+	scanner := bufio.NewScanner(filePositiveQuotes)
+	for scanner.Scan() {
+		globals.PositiveQuotes = append(globals.PositiveQuotes, scanner.Text())
+	}
 
-		niggaballs := strconv.FormatInt(bbc, 10)
-		getproductid, err := http.NewRequest("GET", fmt.Sprintf("https://api.roblox.com/marketplace/productinfo?assetId=%s", niggaballs ), nil)
+	fileNegativeQuotes, _ := os.Open("nquotes.txt")
+	scanner := bufio.NewScanner(fileNegativeQuotes)
+	for scanner.Scan() {
+		globals.NegativeQuotes = append(globals.NegativeQuotes, scanner.Text())
+	}
+
+	// Cache ProductIDS of loaded assetIds
+	for line, assetId := range assetIds {
+		productIdReq, err := http.NewRequest("GET", fmt.Sprintf("https://api.roblox.com/marketplace/productinfo?assetId=%s", niggaballs ), nil)
 		if err != nil {
-			fmt.Printf("[Reaper] Failed to grab ProductID of AssetID of %s", line)
+			fmt.Printf("[Reaper] Failed to create request to fetch ProductID for AssetID %s", line)
 		}
-		getproductid.Header.Add("Cookie", fmt.Sprintf(".ROBLOSECURITY=%s", globals.Config.Cookie))
-		getproductidres, err := client.Do(getproductid)
-		if err != nil {
-			fmt.Printf("[Reaper] 1 Failed to grab ProductID of AssetID of %s ", line)
+		productIdReq.Header.Add("Cookie", fmt.Sprintf(".ROBLOSECURITY=%s", globals.Config.Cookie))
+		productIdResp, productIdRespErr := client.Do(getproductid)
+		if productIdRespErr != nil {
+			fmt.Printf("[Reaper] Failed to grab ProductID of AssetID of %s ", line)
 		}
-		var aids *GetProductId
-		json.NewDecoder(getproductidres.Body).Decode(&aids)
-		jeroen := aids.ProductID
-		globals.CachedProductIDs[bbc] = jeroen
+		var product *GetProductId
+		json.NewDecoder(getproductidres.Body).Decode(&product)
+		globals.CachedProductIDs[assetId] = product.ProductID
+		globals.CachedAssetNames[assetId] = product.Name
 	}
 
 

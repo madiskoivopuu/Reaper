@@ -17,8 +17,11 @@ type config struct {
 
 var (
 	Config            config
+	PositiveQuotes []string
+	NegativeQuotes []string
 	CachedTokens      = make(map[string]string, 0)
 	CachedProductIDs  = make(map[int64]int64, 0)
+	CachedAssetNames = make(map[int64]string, 0)
 	BlockedAssetIds = make(map[int64]int64, 0)
 	PriceCheckCookies []string
 )
