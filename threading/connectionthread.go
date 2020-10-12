@@ -1,8 +1,6 @@
 package threading
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 

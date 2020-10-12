@@ -26,6 +26,7 @@ func SnipeThread(assetIDs []int64, snipeChannel chan *rblx.PurchasePost) {
 	for {
 		detailsResponse, err := rblxsession.GetCatalogDetails(assetIDs)
 		if err != nil {
+			//fmt.Println(err)
 			// Rate limit, change price check cookie
 			switch err.Type {
 			case rblx.TooManyRequests:
@@ -42,17 +43,18 @@ func SnipeThread(assetIDs []int64, snipeChannel chan *rblx.PurchasePost) {
 
 		// Loop over the items & send the purchase details to main thread if snipe is profitable
 		for _, item := range detailsResponse.Data {
-			if globals.Config.TrySnipe == true {
-				counter += 1
-				fmt.Printf("Counter: %d | LowestPrice: %d | Cached Price: %d \n", counter, item.LowestPrice, cachedPrices[item.ID])
-			}
+			//counter += 1
+			//fmt.Println(counter)
+			fmt.Printf("LowestPrice: %d | Cached Price: %d \n", item.LowestPrice, cachedPrices[item.ID])
 			if item.LowestPrice == 0 {
-				continue
+				fmt.Println("Lowest Price was 0!")
+				return
+			}
+			if cachedPrices[item.ID] == 0 {
+				fmt.Println("CachedPrice was 0!")
+				return
 			}
 			if item.LowestPrice < cachedPrices[item.ID] {
-				if cachedPrices[item.ID] == 0 {
-					continue
-				}
 				getpercent := float64((30 * item.LowestPrice) / 100)
 				oldPriceAfterTax := float64(cachedPrices[item.ID])
 				oldPriceAfterTax -= getpercent
