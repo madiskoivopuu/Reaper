@@ -21,7 +21,7 @@ type SellItemResponse struct {
 	Error string `json:"error"`
 }
 
-// GetResellers fetches the 10 cheapest resellers for an item
+// Sells item
 func (session *RBLXSession) SellItem(assetID int64, userAssetID int64, price int64) (*SellItemResponse, *Error) {
 	var sellitemjson SellItem
 	sellitemjson = SellItem{AssetID: int(assetID), UserAssetID: int(userAssetID), Price: int(price), Sell: "true"}

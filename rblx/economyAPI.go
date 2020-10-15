@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/SparklyCatTF2/Reaper/globals"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/SparklyCatTF2/Reaper/globals"
 )
 
 type ResellersResponse struct {
@@ -38,6 +37,7 @@ type PurchaseResponse struct {
 
 // GetResellers fetches the 10 cheapest resellers for an item
 func (session *RBLXSession) GetResellers(assetID int64) (*ResellersResponse, *Error) {
+
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://economy.roblox.com/v1/assets/%d/resellers?limit=10", assetID), nil)
 	req.Header.Add("Cookie", ".ROBLOSECURITY="+session.Cookie)
 	resp, respError := session.Client.Do(req)
@@ -61,10 +61,12 @@ func (session *RBLXSession) GetResellers(assetID int64) (*ResellersResponse, *Er
 		return nil, NewCustomError(jsonParseError, -1)
 	}
 
+
 	return &resellers, nil
 }
 
 func (session *RBLXSession) PurchaseItem(assetId int64, purchaseStruct PurchasePost) (*PurchaseResponse, *Error) {
+
 	jsonData, jsonError := json.Marshal(purchaseStruct)
 	if jsonError != nil {
 		return nil, NewCustomError(jsonError, -1)
@@ -94,6 +96,7 @@ func (session *RBLXSession) PurchaseItem(assetId int64, purchaseStruct PurchaseP
 	if jsonParseError != nil {
 		return nil, NewCustomError(jsonParseError, -1)
 	}
+
 
 	return &purchaseResponse, nil
 }
